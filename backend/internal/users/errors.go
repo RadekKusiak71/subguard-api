@@ -1,14 +1,22 @@
 package users
 
 import (
+	"errors"
 	"net/http"
 
-	"github.com/RadekKusiak71/subguard-api/internal/errors"
+	errorx "github.com/RadekKusiak71/subguard-api/internal/errors"
 )
 
-func UserAlreadyExists() errors.APIError {
-	return errors.NewApiError(
+func UserAlreadyExist() errorx.APIError {
+	return errorx.NewApiError(
 		http.StatusConflict,
-		map[string]string{"user": "user already exists"},
+		errors.New("user already exist"),
+	)
+}
+
+func UserDoesNotExist() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusNotFound,
+		errors.New("user does not exist"),
 	)
 }

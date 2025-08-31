@@ -11,9 +11,9 @@ func (e APIError) Error() string {
 	return fmt.Sprintf("API Error with status code %d: %s", e.StatusCode, e.Message)
 }
 
-func NewApiError(statusCode int, message any) APIError {
+func NewApiError(statusCode int, err error) APIError {
 	return APIError{
 		StatusCode: statusCode,
-		Message:    message,
+		Message:    err.Error(),
 	}
 }

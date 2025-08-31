@@ -36,7 +36,7 @@ func MakeHandleFunc(f APIHandler) http.HandlerFunc {
 			apiErr, ok := err.(errors.APIError)
 
 			if ok {
-				utils.WriteJSON(w, apiErr.StatusCode, apiErr.Message)
+				utils.WriteJSON(w, apiErr.StatusCode, apiErr)
 				return
 			}
 

@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/RadekKusiak71/subguard-api/internal/users"
@@ -31,7 +32,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) error {
 	_, err := h.userStore.GetByEmail(registerPayload.Email)
 
 	if err == nil {
-		return users.UserAlreadyExists()
+		return users.UserAlreadyExist()
 	}
 
 	hashedPassword, err := HashPassword(registerPayload.Password)
@@ -52,4 +53,33 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) error {
 	return utils.WriteJSON(w, http.StatusOK, user)
 }
 
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) error { return nil }
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) error {
+	var loginPayload LoginPayload
+
+	if err := utils.ParseJSON(r, &loginPayload); err != nil {
+		return utils.InvalidJSON()
+	}
+
+	user, err := h.userStore.GetByEmail(loginPayload.Email)
+
+	if err != nil {
+		if errors.Is(err, users.ErrUserNotFound) {
+			return users.UserDoesNotExist()
+		}
+		return err
+	}
+
+	if !ComparePasswords(loginPayload.Password, user.Password) {
+		return InvalidCredentials()
+	}
+
+	token, err := CreateToken(user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	return utils.WriteJSON(w, http.StatusOK, TokenResponse{
+		AccessToken: token,
+	})
+}
