@@ -34,9 +34,15 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) error {
 		return users.UserAlreadyExists()
 	}
 
+	hashedPassword, err := HashPassword(registerPayload.Password)
+
+	if err != nil {
+		return err
+	}
+
 	user := users.User{
 		Email:    registerPayload.Email,
-		Password: registerPayload.Password,
+		Password: hashedPassword,
 	}
 
 	if err := h.userStore.Create(&user); err != nil {
