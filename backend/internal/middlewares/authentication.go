@@ -3,11 +3,9 @@ package middlewares
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/RadekKusiak71/subguard-api/internal/authentication"
 	"github.com/RadekKusiak71/subguard-api/internal/users"
@@ -15,65 +13,53 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("[%s] %s %s", time.Now().Format(time.RFC3339), r.Method, r.URL.Path)
-		next.ServeHTTP(w, r)
-	})
+func extractToken(r *http.Request) (*jwt.Token, error) {
+	authString := r.Header.Get("Authorization")
+	if authString == "" {
+		return nil, authentication.MissingToken()
+	}
+
+	parts := strings.SplitN(authString, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return nil, authentication.InvalidAuthorizationHeader()
+	}
+
+	tokenString := strings.TrimSpace(parts[1])
+	if tokenString == "" {
+		return nil, authentication.InvalidAuthorizationHeader()
+	}
+
+	token, err := authentication.ValidateJWT(tokenString)
+	if err != nil {
+		return nil, authentication.InvalidToken()
+	}
+
+	return token, nil
 }
 
 func AuthMiddleware(next utils.APIHandler, userStore users.UserStore) utils.APIHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		extractToken := func(r *http.Request) (*jwt.Token, error) {
-			authString := r.Header.Get("Authorization")
-			if authString == "" {
-				return nil, authentication.MissingToken()
-			}
-
-			parts := strings.SplitN(authString, " ", 2)
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				return nil, authentication.InvalidAuthorizationHeader()
-			}
-
-			tokenString := strings.TrimSpace(parts[1])
-			if tokenString == "" {
-				return nil, authentication.InvalidAuthorizationHeader()
-			}
-
-			token, err := authentication.ValidateJWT(tokenString)
-			if err != nil {
-				return nil, authentication.InvalidToken()
-			}
-
-			return token, nil
-		}
-
 		token, err := extractToken(r)
-
 		if err != nil {
 			return err
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
-
 		if !ok {
 			return authentication.InvalidToken()
 		}
 
 		userIDStr, ok := claims["userID"].(string)
-
 		if !ok {
 			return authentication.InvalidToken()
 		}
 
 		userID, err := strconv.Atoi(userIDStr)
-
 		if err != nil {
 			return authentication.InvalidToken()
 		}
 
 		user, err := userStore.Get(userID)
-
 		if err != nil {
 			if errors.Is(err, users.ErrUserNotFound) {
 				return authentication.InvalidToken()
