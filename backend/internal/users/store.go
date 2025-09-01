@@ -20,7 +20,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) Get(userID int) (*User, error) {
-	row := s.db.QueryRow("SELECT id, email, password, is_active, created_at FROM users WHERE id = $1 LIMIT 1", userID)
+	row := s.db.QueryRow("SELECT id, email, password, created_at FROM users WHERE id = $1 LIMIT 1", userID)
 
 	user := new(User)
 
@@ -28,7 +28,6 @@ func (s *Store) Get(userID int) (*User, error) {
 		&user.ID,
 		&user.Email,
 		&user.Password,
-		&user.IsActive,
 		&user.CreatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -42,7 +41,7 @@ func (s *Store) Get(userID int) (*User, error) {
 
 func (s *Store) GetByEmail(email string) (*User, error) {
 	row := s.db.QueryRow(
-		"SELECT id, email, password, is_active, created_at FROM users WHERE email = $1 LIMIT 1",
+		"SELECT id, email, password, created_at FROM users WHERE email = $1 LIMIT 1",
 		email,
 	)
 
@@ -52,7 +51,6 @@ func (s *Store) GetByEmail(email string) (*User, error) {
 		&user.ID,
 		&user.Email,
 		&user.Password,
-		&user.IsActive,
 		&user.CreatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -20,10 +20,3 @@ func UserDoesNotExist() errorx.APIError {
 		errors.New("user does not exist"),
 	)
 }
-
-func AccountNotVerified() errorx.APIError {
-	return errorx.NewApiError(
-		http.StatusForbidden,
-		errors.New("user account is not verified"),
-	)
-}

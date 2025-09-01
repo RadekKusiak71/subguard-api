@@ -67,10 +67,6 @@ func AuthMiddleware(next utils.APIHandler, userStore users.UserStore) utils.APIH
 			return err
 		}
 
-		if !user.IsActive {
-			return users.AccountNotVerified()
-		}
-
 		ctx := context.WithValue(
 			r.Context(),
 			users.UserContextKey,
