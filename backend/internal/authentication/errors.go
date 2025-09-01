@@ -13,3 +13,31 @@ func InvalidCredentials() errorx.APIError {
 		errors.New("invalid credentials"),
 	)
 }
+
+func MissingToken() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusUnauthorized,
+		errors.New("Missing token."),
+	)
+}
+
+func MissingAuthorizationHeader() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusUnauthorized,
+		errors.New("missing authorization header"),
+	)
+}
+
+func InvalidAuthorizationHeader() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusUnauthorized,
+		errors.New("authorization header must start with 'Bearer <token>'"),
+	)
+}
+
+func InvalidToken() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusUnauthorized,
+		errors.New("invalid authorization token"),
+	)
+}

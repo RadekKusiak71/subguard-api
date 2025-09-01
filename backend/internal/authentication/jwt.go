@@ -28,3 +28,19 @@ func CreateToken(userID int) (string, error) {
 
 	return tokenString, nil
 }
+
+func ValidateJWT(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, err
+	}
+
+	return token, nil
+}

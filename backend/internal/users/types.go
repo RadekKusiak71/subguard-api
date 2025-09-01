@@ -11,6 +11,11 @@ type User struct {
 }
 
 type UserStore interface {
+	Get(userID int) (*User, error)
 	GetByEmail(email string) (*User, error)
 	Create(user *User) error
 }
+
+type userContextKey string
+
+const UserContextKey userContextKey = "userID"
