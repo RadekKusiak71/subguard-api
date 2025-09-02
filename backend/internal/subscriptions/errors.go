@@ -13,3 +13,10 @@ func SubscriptionExists() errorx.APIError {
 		errors.New("subscription already exist"),
 	)
 }
+
+func SubscriptionNotFound() errorx.APIError {
+	return errorx.NewApiError(
+		http.StatusNotFound,
+		errors.New("subscription not found"),
+	)
+}

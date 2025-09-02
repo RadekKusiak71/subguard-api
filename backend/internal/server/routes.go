@@ -35,8 +35,20 @@ func (s *APIServer) RegisterRoutesAndCron() {
 	).Methods("GET")
 
 	subRouter.HandleFunc(
+		"/{subscriptionID}", utils.MakeHandleFunc(middlewares.AuthMiddleware(subHandler.GetSubscription, userStore)),
+	).Methods("GET")
+
+	subRouter.HandleFunc(
+		"/{subscriptionID}", utils.MakeHandleFunc(middlewares.AuthMiddleware(subHandler.UpdateSubscription, userStore)),
+	).Methods("PATCH")
+
+	subRouter.HandleFunc(
 		"", utils.MakeHandleFunc(middlewares.AuthMiddleware(subHandler.CreateSubscription, userStore)),
 	).Methods("POST")
+
+	subRouter.HandleFunc(
+		"/{subscriptionID}", utils.MakeHandleFunc(middlewares.AuthMiddleware(subHandler.DeleteSubscription, userStore)),
+	).Methods("DELETE")
 
 	// Cron
 	subCron := tasks.NewSubscriptionCron(subStore, userStore)

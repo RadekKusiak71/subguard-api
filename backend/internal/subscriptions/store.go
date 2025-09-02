@@ -87,6 +87,33 @@ func (s *Store) GetByName(userID int, name string) (*Subscription, error) {
 	return subscription, nil
 }
 
+func (s *Store) Get(userID, subscriptionID int) (*Subscription, error) {
+	row := s.db.QueryRow(
+		"SELECT * FROM subscriptions WHERE user_id = $1 AND id = $2",
+		userID,
+		subscriptionID,
+	)
+
+	subscription := new(Subscription)
+
+	if err := row.Scan(
+		&subscription.ID,
+		&subscription.UserID,
+		&subscription.Name,
+		&subscription.Price,
+		&subscription.Plan,
+		&subscription.NextPaymentAt,
+		&subscription.CreatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrSubscriptionNotFound
+		}
+		return nil, err
+	}
+
+	return subscription, nil
+}
+
 func (s *Store) Create(subscription *Subscription) error {
 
 	row := s.db.QueryRow(
@@ -104,6 +131,37 @@ func (s *Store) Create(subscription *Subscription) error {
 		&subscription.CreatedAt,
 	); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Update(subscription *Subscription) error {
+	result, err := s.db.Exec(
+		`
+        UPDATE subscriptions
+        SET name = $1, price = $2, plan = $3, next_payment_at = $4
+        WHERE user_id = $5 AND id = $6
+        `,
+		subscription.Name,
+		subscription.Price,
+		subscription.Plan,
+		subscription.NextPaymentAt,
+		subscription.UserID,
+		subscription.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionNotFound
 	}
 
 	return nil
@@ -165,4 +223,26 @@ func (s *Store) GetExpiringSoon() ([]Subscription, error) {
 	}
 
 	return subscriptions, nil
+}
+
+func (s *Store) Delete(userID, subscriptionID int) error {
+	result, err := s.db.Exec(
+		`DELETE FROM subscriptions WHERE user_id = $1 AND id = $2`,
+		userID, subscriptionID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrSubscriptionNotFound
+	}
+
+	return nil
 }
