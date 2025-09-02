@@ -28,7 +28,7 @@ func NewAPIServer(addr string, database *sql.DB, writeTimeout, readTimeout time.
 }
 
 func (s *APIServer) Run() {
-	s.RegisterRoutes()
+	s.RegisterRoutesAndCron()
 
 	server := &http.Server{
 		Addr:         s.Addr,

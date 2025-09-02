@@ -17,6 +17,8 @@ type EnvConfig struct {
 	DBPort        string
 	JWTSecret     string
 	JWTExpireTime int
+	EmailSender   string
+	EmailPassword string
 }
 
 var Config EnvConfig = loadConfig()
@@ -35,6 +37,8 @@ func loadConfig() EnvConfig {
 		DBPort:        getEnv("DB_PORT", "5432"),
 		JWTSecret:     getEnv("JWT_SECRET", "very-secret"),
 		JWTExpireTime: getEnvAsInt("JWT_EXPIRE_TIME", 3600),
+		EmailSender:   getEnv("EMAIL_SENDER", "test@mail.com"),
+		EmailPassword: getEnv("EMAIL_PASSWORD", "test"),
 	}
 }
 

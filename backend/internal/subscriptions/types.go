@@ -25,6 +25,8 @@ type SubscriptionStore interface {
 	List(userID int) ([]Subscription, error)
 	GetByName(userID int, name string) (*Subscription, error)
 	Create(subscription *Subscription) error
+	GetExpiringSoon() ([]Subscription, error)
+	UpdateNextPaymentBatch(subs []Subscription) error
 }
 
 type Subscription struct {

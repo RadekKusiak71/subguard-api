@@ -3,6 +3,7 @@ package subscriptions
 import (
 	"database/sql"
 	"errors"
+	"time"
 )
 
 var (
@@ -106,4 +107,62 @@ func (s *Store) Create(subscription *Subscription) error {
 	}
 
 	return nil
+}
+
+func (s *Store) UpdateNextPaymentBatch(subs []Subscription) error {
+	ids := make([]int, len(subs))
+	for i, sub := range subs {
+		ids[i] = sub.ID
+	}
+
+	query := `
+        UPDATE subscriptions
+        SET next_payment_at = CASE plan
+            WHEN 'monthly' THEN next_payment_at + INTERVAL '1 month'
+            WHEN 'yearly'  THEN next_payment_at + INTERVAL '1 year'
+            ELSE next_payment_at
+        END
+        WHERE id = ANY($1)
+    `
+	_, err := s.db.Exec(query, ids)
+	return err
+}
+
+func (s *Store) GetExpiringSoon() ([]Subscription, error) {
+	now := time.Now()
+	tomorrow := now.Add(24 * time.Hour)
+
+	startOfTomorrow := time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 0, 0, 0, 0, tomorrow.Location())
+	endOfTomorrow := startOfTomorrow.Add(24*time.Hour - time.Nanosecond)
+
+	rows, err := s.db.Query(
+		`SELECT id, user_id, name, price, plan, next_payment_at, created_at
+		FROM subscriptions
+		WHERE next_payment_at BETWEEN $1 AND $2`,
+		startOfTomorrow,
+		endOfTomorrow,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subscriptions []Subscription
+	for rows.Next() {
+		var subscription Subscription
+		if err := rows.Scan(
+			&subscription.ID,
+			&subscription.UserID,
+			&subscription.Name,
+			&subscription.Price,
+			&subscription.Plan,
+			&subscription.NextPaymentAt,
+			&subscription.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+
+	return subscriptions, nil
 }

@@ -4,11 +4,12 @@ import (
 	"github.com/RadekKusiak71/subguard-api/internal/authentication"
 	"github.com/RadekKusiak71/subguard-api/internal/middlewares"
 	"github.com/RadekKusiak71/subguard-api/internal/subscriptions"
+	"github.com/RadekKusiak71/subguard-api/internal/tasks"
 	"github.com/RadekKusiak71/subguard-api/internal/users"
 	"github.com/RadekKusiak71/subguard-api/internal/utils"
 )
 
-func (s *APIServer) RegisterRoutes() {
+func (s *APIServer) RegisterRoutesAndCron() {
 	// Middlewares
 	s.Router.Use(middlewares.LoggingMiddleware)
 
@@ -37,4 +38,7 @@ func (s *APIServer) RegisterRoutes() {
 		"", utils.MakeHandleFunc(middlewares.AuthMiddleware(subHandler.CreateSubscription, userStore)),
 	).Methods("POST")
 
+	// Cron
+	subCron := tasks.NewSubscriptionCron(subStore, userStore)
+	tasks.StartCron(subCron)
 }
