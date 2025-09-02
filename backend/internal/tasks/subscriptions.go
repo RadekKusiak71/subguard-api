@@ -110,14 +110,3 @@ func (sc *SubscriptionCron) sendMail(userID int, expiringSubs []subscriptions.Su
 	log.Printf("[INFO] Email successfully sent to %s", user.Email)
 	return nil
 }
-
-func nextPaymentDate(current time.Time, plan subscriptions.SubscriptionPlan) time.Time {
-	switch plan {
-	case subscriptions.Monthly:
-		return current.AddDate(0, 1, 0)
-	case subscriptions.Yearly:
-		return current.AddDate(1, 0, 0)
-	default:
-		return current
-	}
-}
