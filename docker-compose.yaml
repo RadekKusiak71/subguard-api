@@ -11,6 +11,23 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./:/app
+    depends_on:
+      database:
+        condition: service_healthy
 
 volumes:
   database:
