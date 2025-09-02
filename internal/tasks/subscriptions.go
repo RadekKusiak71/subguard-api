@@ -66,7 +66,7 @@ func (sc *SubscriptionCron) sendMail(userID int, expiringSubs []subscriptions.Su
 		return err
 	}
 
-	tmpl, err := template.ParseFiles("internal/templates/email_template.html")
+	tmpl, err := template.ParseFiles("templates/email_template.html")
 	if err != nil {
 		log.Printf("[ERROR] Failed to parse email template: %v", err)
 		return err
